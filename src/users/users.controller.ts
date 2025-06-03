@@ -67,7 +67,6 @@ export class UsersController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    // if (id[0] == ':') id = id.slice(1,id.length);
     if (!validate(id)) {
       throw new BadRequestException(`id ${id} is not UUID type!`);
     }
