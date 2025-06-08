@@ -24,11 +24,11 @@ export class FavoritesController {
   constructor(private readonly favoritesService: FavoritesService) {}
 
   @Post('/track/:id')
-  addTrack(@Param('id') id: string) {
+  async addTrack(@Param('id') id: string) {
     if (!validate(id)) {
       throw new BadRequestException(`id ${id} is not UUID type!`);
     }
-    let serviceAnswer = this.favoritesService.addTrack(id);
+    let serviceAnswer = await this.favoritesService.addTrack(id);
     if (serviceAnswer == STATUS.OBJECTONERROR) {
       throw new UnprocessableEntityException(
         `track with id: ${id} does not exist!`,
@@ -37,11 +37,11 @@ export class FavoritesController {
   }
 
   @Post('/album/:id')
-  addAlbum(@Param('id') id: string) {
+  async addAlbum(@Param('id') id: string) {
     if (!validate(id)) {
       throw new BadRequestException(`id ${id} is not UUID type!`);
     }
-    let serviceAnswer = this.favoritesService.addAlbum(id);
+    let serviceAnswer = await this.favoritesService.addAlbum(id);
     if (serviceAnswer == STATUS.OBJECTONERROR) {
       throw new UnprocessableEntityException(
         `album with id: ${id} does not exist!`,
@@ -50,11 +50,11 @@ export class FavoritesController {
   }
 
   @Post('/artist/:id')
-  addArtist(@Param('id') id: string) {
+  async addArtist(@Param('id') id: string) {
     if (!validate(id)) {
       throw new BadRequestException(`id ${id} is not UUID type!`);
     }
-    let serviceAnswer = this.favoritesService.addArtist(id);
+    let serviceAnswer = await this.favoritesService.addArtist(id);
     if (serviceAnswer == STATUS.OBJECTONERROR) {
       throw new UnprocessableEntityException(
         `artist with id: ${id} does not exist!`,
@@ -63,18 +63,18 @@ export class FavoritesController {
   }
 
   @Get()
-  findAll() {
+  async findAll() {
     return this.favoritesService.findAll();
   }
 
   @Delete('/track/:id')
   @HttpCode(204)
-  removeFavTrack(@Param('id') id: string) {
+  async removeFavTrack(@Param('id') id: string) {
     if (!validate(id)) {
       throw new BadRequestException(`id ${id} is not UUID type!`);
     }
     let serviceAnswer: STATUS | unknown =
-      this.favoritesService.removeFavTrack(id);
+      await this.favoritesService.removeFavTrack(id);
     if (serviceAnswer == STATUS.NOTFOUND) {
       throw new NotFoundException(`track with id ${id} no found!`);
     }
@@ -82,12 +82,12 @@ export class FavoritesController {
 
   @Delete('/artist/:id')
   @HttpCode(204)
-  removeFavArtist(@Param('id') id: string) {
+  async removeFavArtist(@Param('id') id: string) {
     if (!validate(id)) {
       throw new BadRequestException(`id ${id} is not UUID type!`);
     }
     let serviceAnswer: STATUS | unknown =
-      this.favoritesService.removeFavArtist(id);
+     await this.favoritesService.removeFavArtist(id);
     if (serviceAnswer == STATUS.NOTFOUND) {
       throw new NotFoundException(`artist with id ${id} no found!`);
     }
@@ -95,12 +95,12 @@ export class FavoritesController {
 
   @Delete('/album/:id')
   @HttpCode(204)
-  removeFavAlbum(@Param('id') id: string) {
+  async removeFavAlbum(@Param('id') id: string) {
     if (!validate(id)) {
       throw new BadRequestException(`id ${id} is not UUID type!`);
     }
     let serviceAnswer: STATUS | unknown =
-      this.favoritesService.removeFavAlbum(id);
+      await this.favoritesService.removeFavAlbum(id);
     if (serviceAnswer == STATUS.NOTFOUND) {
       throw new NotFoundException(`album with id ${id} no found!`);
     }

@@ -5,6 +5,8 @@ import { Artist } from './entities/artist.entity';
 import { randomUUID } from 'crypto';
 import { Track } from 'src/tracks/entities/track.entity';
 import { Album } from 'src/albums/entities/album.entity';
+import { prisma } from 'prisma/seed';
+
 
 export enum STATUS {
   BADREQUEST = 400,
@@ -15,21 +17,28 @@ export enum STATUS {
 
 @Injectable()
 export class ArtistsService {
-  create(createArtistDto: CreateArtistDto) {
+  async create(createArtistDto: CreateArtistDto) {
     let id = randomUUID();
     createArtistDto.id = id;
-    const artist = new Artist(createArtistDto);
+    await prisma.artist.create({
+      data: {
+        id: id,
+        name: createArtistDto.name,
+        grammy: createArtistDto.grammy
+      }
+    });
+    const artist = await prisma.artist.findUnique({where: {id: id}});
     console.log(`new artist added!`);
     return artist;
   }
 
-  findAll() {
+  async findAll() {
     console.log(`This action returns all artists`);
-    return Artist.usersDb;
+    return await prisma.artist.findMany();
   }
 
-  findOne(id: string) {
-    let artist = Artist.usersDb.find((user) => user.id == id);
+  async findOne(id: string) {
+    let artist = await prisma.artist.findUnique({where: {id: id}});
     if (artist == undefined) {
       return STATUS.NOTFOUND;
     }
@@ -37,33 +46,55 @@ export class ArtistsService {
     return artist;
   }
 
-  update(id: string, updateArtistDto: UpdateArtistDto) {
+  async update(id: string, updateArtistDto: UpdateArtistDto) {
     let name = updateArtistDto.name;
     let grammy = updateArtistDto.grammy;
     if (name == undefined || grammy == undefined || typeof name == 'number')
       return STATUS.BADREQUEST;
-    let artist = Artist.usersDb.find((user) => user.id == id);
+    let artist = await prisma.artist.findUnique({where: {id: id}});
     if (artist == undefined) {
       return STATUS.NOTFOUND;
     }
-    artist.name = name;
-    artist.grammy = grammy;
+    await prisma.artist.update({
+      where: {
+        id: id
+      },
+      data: {
+        name: name,
+        grammy: grammy
+      }
+    });
     return `Artist #${id} updated`;
   }
 
-  remove(id: string) {
-    let artistIdex = Artist.usersDb.findIndex((user) => user.id == id);
-    if (artistIdex == -1) {
+  async remove(id: string) {
+    let artistIdex = await prisma.artist.findUnique({where: {id: id}});
+    if (artistIdex == undefined) {
       return STATUS.NOTFOUND;
     }
-    let artistId = Artist.usersDb[artistIdex].id;
-    Track.usersDb.forEach((track) => {
-      if (track.artistId == artistId) track.artistId = null;
-    });
-    Album.usersDb.forEach((album) => {
-      if (album.artistId == artistId) album.artistId = null;
-    });
-    Artist.usersDb.splice(artistIdex, 1);
+    let referTracks = await prisma.track.findMany({where: {artistId: id}});
+    if (referTracks){
+      await prisma.track.updateMany({
+        where: {
+          artistId: id
+        },
+        data: {
+          artistId: null
+        }
+      });
+    };
+    let referAlbums = await prisma.album.findMany({where: {artistId: id}});
+    if (referAlbums){
+      await prisma.album.updateMany({
+        where: {
+          artistId: id
+        },
+        data: {
+          artistId: null
+        }
+      });
+    }
+    await prisma.artist.delete({where: {id: id}});
     console.log(`This action removes a #${id} artist`);
     return STATUS.DELETED;
   }

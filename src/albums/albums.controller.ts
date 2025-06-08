@@ -26,7 +26,7 @@ export class AlbumsController {
   ) {}
 
   @Post()
-  create(@Body() CreateAlbumDto: CreateAlbumDto) {
+  async create(@Body() CreateAlbumDto: CreateAlbumDto) {
     if (CreateAlbumDto.name !== undefined && CreateAlbumDto.name !== null) {
       if (
         !(CreateAlbumDto.name.length > 0) ||
@@ -34,23 +34,23 @@ export class AlbumsController {
       ) {
         throw new BadRequestException(`body does not contain required fields!`);
       }
-      return this.albumsService.create(CreateAlbumDto);
+      return await this.albumsService.create(CreateAlbumDto);
     } else {
       throw new BadRequestException(`body does not contain required fields!`);
     }
   }
 
   @Get()
-  findAll() {
-    return this.albumsService.findAll();
+  async findAll() {
+    return await this.albumsService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string) {
     if (!validate(id)) {
       throw new BadRequestException(`id ${id} is not UUID type!`);
     }
-    let data: string | unknown = this.albumsService.findOne(id);
+    let data: string | unknown = await this.albumsService.findOne(id);
     if (data == STATUS.NOTFOUND) {
       throw new NotFoundException(`artist with id ${id} no found!`);
     } else {
@@ -59,11 +59,11 @@ export class AlbumsController {
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() UpdateAlbumDto: UpdateAlbumDto) {
+  async update(@Param('id') id: string, @Body() UpdateAlbumDto: UpdateAlbumDto) {
     if (!validate(id)) {
       throw new BadRequestException(`id ${id} is not UUID type!`);
     }
-    let serviceAnswer: STATUS | unknown = this.albumsService.update(
+    let serviceAnswer: STATUS | unknown = await this.albumsService.update(
       id,
       UpdateAlbumDto,
     );
@@ -80,11 +80,11 @@ export class AlbumsController {
 
   @Delete(':id')
   @HttpCode(204)
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string) {
     if (!validate(id)) {
       throw new BadRequestException(`id ${id} is not UUID type!`);
     }
-    let serviceAnswer: STATUS | unknown = this.albumsService.remove(id);
+    let serviceAnswer: STATUS | unknown = await this.albumsService.remove(id);
     if (serviceAnswer == STATUS.NOTFOUND) {
       throw new NotFoundException(`track with id ${id} no found!`);
     }
