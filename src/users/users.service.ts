@@ -43,7 +43,14 @@ export class UsersService {
   async findAll() {
     console.log(`This action returns all users`);
     let allUsers = await prisma.user.findMany();
-    return allUsers;
+    let tempUser = allUsers.map(field => ({
+      id: field.id,
+      login: field.login,
+      version: field.version,
+      createdAt: Number(field.createdAt),
+      updatedAt: Number(field.updatedAt)
+    }))
+    return tempUser;
   }
 
   async findOne(id: string) {
