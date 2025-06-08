@@ -3,13 +3,14 @@ version: '3.7'
 services:
   postgres:
     image: postgres:15
+    container_name: POSTGRES_DB
     restart: always
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=test
     ports:
-      - "5432:5438"
+      - "5432:5432"
     networks:
       - prisma-network
     healthcheck:
@@ -24,9 +25,19 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-
+  app:
+    build: ./
+    restart: always
+    depends_on:
+      - postgres
+    networks:
+      - prisma-network
+    ports:
+      - ${PORT}:${PORT}
+    environment:
+      PG_HOST: postgres
 networks:
   prisma-network:
-
+    driver: bridge
 volumes:
   postgres_data:
