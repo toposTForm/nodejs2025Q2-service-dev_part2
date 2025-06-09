@@ -76,12 +76,17 @@ For more information, visit: https://code.visualstudio.com/docs/editor/debugging
 FOR CORRECT RUN PLS MAKE:
 
 npm install
-
 npx prisma generate
 
-docker compose -f docker-compose.yml up --build -d
+after starting DB:
 
 npx prisma migrate dev --name init
+
+for container creating and run:
+
+docker compose -f docker-compose.yml up --build -d
+docker compose -f docker-compose.yml up
+
 
 
 DATABASE STARTED ON PORT=4000 localhost, DATABASE ON PORT 5432
