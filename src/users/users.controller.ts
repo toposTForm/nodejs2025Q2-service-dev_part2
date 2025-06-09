@@ -18,7 +18,6 @@ import { STATUS, UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-user.dto';
 import { validate } from 'uuid';
-import { User } from './entities/user.entity';
 
 @Controller('/user')
 export class UsersController {

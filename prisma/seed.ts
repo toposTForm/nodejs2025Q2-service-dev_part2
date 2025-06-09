@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client"
 import { User } from '../src/interface'
-
+// import { PrismaClient } from 'generated/prisma/client';
 export const prisma = new PrismaClient();
 
 
@@ -19,7 +19,6 @@ export async function createUser(user: User) {
     } catch (error) {
         console.log(error)
     }
-    
 }
 
 

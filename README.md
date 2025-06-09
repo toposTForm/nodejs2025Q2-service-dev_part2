@@ -70,3 +70,20 @@ npm run format
 Press <kbd>F5</kbd> to debug.
 
 For more information, visit: https://code.visualstudio.com/docs/editor/debugging
+
+
+
+FOR CORRECT RUN PLS MAKE:
+
+npm install
+
+npx prisma generate
+
+docker compose -f docker-compose.yml up --build -d
+
+npx prisma migrate dev --name init
+
+
+DATABASE STARTED ON PORT=4000 localhost, DATABASE ON PORT 5432
+
+YOU CAN CHOOSE ANOTHER PORTS IN .env if they are occupied in your PC

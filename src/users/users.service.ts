@@ -3,7 +3,6 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-user.dto';
 import { randomUUID, UUID } from 'crypto';
 import { User } from './entities/user.entity';
-import { PrismaClient } from 'generated/prisma';
 import { createUser } from 'prisma/seed';
 import { prisma } from 'prisma/seed';
 
