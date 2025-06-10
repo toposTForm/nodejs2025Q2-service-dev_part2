@@ -10,6 +10,7 @@ import { Artist } from 'src/artists/entities/artist.entity';
 import { CreateArtistDto } from 'src/artists/dto/create-artist.dto';
 import { CreateAlbumDto } from 'src/albums/dto/create-album.dto';
 import { Album } from 'src/albums/entities/album.entity';
+import { prisma } from 'prisma/seed';
 
 export enum STATUS {
   BADREQUEST = 400,
@@ -21,74 +22,181 @@ export enum STATUS {
 
 @Injectable()
 export class FavoritesService {
-  addTrack(id: string) {
-    let trackIndex = Track.usersDb.findIndex((track) => track.id == id);
-    if (trackIndex == -1) {
+  async addTrack(id: string) {
+    let track = await prisma.track.findUnique({where: {id: id}});
+    if (track == undefined) {
       return STATUS.OBJECTONERROR;
     }
-    let track: CreateTrackDto = Track.usersDb[trackIndex];
-    let newFav = new Favorite(undefined, undefined, track);
+    await prisma.favorites.create({
+      data: {
+        tracksid: track.id
+       }
+    })
     console.log(`new favorite track added! ${JSON.stringify(track)}`);
-    return newFav;
+    return track;
   }
 
-  addArtist(id: string) {
-    let artistIndex = Artist.usersDb.findIndex((artist) => artist.id == id);
-    if (artistIndex == -1) {
+  async addArtist(id: string) {
+    let artist = await prisma.artist.findUnique({where: {id: id}});
+    if (artist == undefined) {
       return STATUS.OBJECTONERROR;
     }
-    let artist: CreateArtistDto = Artist.usersDb[artistIndex];
-    let newFav = new Favorite(artist, undefined, undefined);
+    await prisma.favorites.create({
+      data: {
+        artistsid: artist.id,
+       }
+    })
     console.log(`new favorite artist added! ${JSON.stringify(artist)}`);
-    return newFav;
+    return artist;
   }
 
-  addAlbum(id: string) {
-    let albumIndex = Album.usersDb.findIndex((album) => album.id == id);
-    if (albumIndex == -1) {
+  async addAlbum(id: string) {
+    let album = await prisma.album.findUnique({where: {id: id}});
+    if (album == undefined) {
       return STATUS.OBJECTONERROR;
     }
-    let album: CreateAlbumDto = Album.usersDb[albumIndex];
-    let newFav = new Favorite(undefined, album, undefined);
+     await prisma.favorites.create({
+      data: {
+        albumsid: album.id,
+       }
+    })
     console.log(`new favorite album added! ${JSON.stringify(album)}`);
-    return newFav;
+    return album;
   }
 
-  findAll() {
+  async findAll() {
     console.log(`This action returns all favorites`);
+    let favTracks = await prisma.favorites.findMany({
+      where: {
+        tracks: {
+          isNot: null
+        }
+      },
+      include: {
+        tracks: {
+          select: {
+            name: true,
+            id: true,
+            duration: true,
+            artist: true,
+            artistId: true,
+            albumId: true
+          }
+        }
+      },
+      omit: {
+        albumsid: true,
+        artistsid: true,
+        usersid: true
+      }
+    });
+    let tracks = favTracks.map(track => ({
+      id: track.tracks.id,
+      name: track.tracks.name,
+      artistId: track.tracks.artistId,
+      albumId: track.tracks.albumId,
+      duration: track.tracks.duration
+    }));
+    let favArtists = await prisma.favorites.findMany({
+      where: {
+        artists: {
+          isNot: null
+        }
+      },
+      include: {
+        artists: {
+          select: {
+            id: true,
+            name: true,
+            grammy: true
+          }
+        }
+      },
+      omit: {
+        albumsid: true,
+        tracksid: true,
+        usersid: true
+      }
+    });
+    let artists = favArtists.map(artist => ({
+      id: artist.artists.id,
+      name: artist.artists.name,
+      grammy: artist.artists.grammy
+    }));
+    let favAlbums= await prisma.favorites.findMany({
+      where: {
+        albums: {
+          isNot: null
+        }
+      },
+      include: {
+        albums: {
+          select: {
+            id: true,
+            name: true,
+            year: true,
+            artistId: true
+          }
+        }
+      },
+      omit: {
+        artistsid: true,
+        tracksid: true,
+        usersid: true
+      }
+    });
+    let albums = favAlbums.map(album => ({
+      id: album.albums.id,
+      name: album.albums.name,
+      year: album.albums.year,
+      artistId: album.albums.artistId
+    }));
+    let bla = 0;
     return {
-      artists: Favorite.artists,
-      albums: Favorite.albums,
-      tracks: Favorite.tracks,
+      artists: artists,
+      albums: albums,
+      tracks: tracks
     };
   }
 
-  removeFavTrack(id: string) {
-    let trackIndex = Favorite.tracks.findIndex((track) => track.id == id);
-    if (trackIndex == -1) {
+  async removeFavTrack(id: string) {
+    let track = await prisma.favorites.findUnique({
+      where: {
+        tracksid: id
+      }
+    });
+    if (track == undefined) {
       return STATUS.NOTFOUND;
     }
-    Favorite.tracks.splice(trackIndex, 1);
+    await prisma.favorites.delete({where: {tracksid: id}});
     console.log(`This action removes a #${id} track from favorites`);
     return STATUS.DELETED;
   }
 
-  removeFavArtist(id: string) {
-    let artistIndex = Favorite.artists.findIndex((artist) => artist.id == id);
-    if (artistIndex == -1) {
+  async removeFavArtist(id: string) {
+    let artist = await prisma.favorites.findUnique({
+      where: {
+        artistsid: id
+      }
+    });
+    if (artist == undefined) {
       return STATUS.NOTFOUND;
     }
-    Favorite.artists.splice(artistIndex, 1);
+    await prisma.favorites.delete({where: {artistsid: id}});
     console.log(`This action removes a #${id} artist from favorites`);
     return STATUS.DELETED;
   }
 
-  removeFavAlbum(id: string) {
-    let albumIndex = Favorite.albums.findIndex((album) => album.id == id);
-    if (albumIndex == -1) {
+  async removeFavAlbum(id: string) {
+     let album = await prisma.favorites.findUnique({
+      where: {
+        albumsid: id
+      }
+    });
+    if (album == undefined) {
       return STATUS.NOTFOUND;
     }
-    Favorite.albums.splice(albumIndex, 1);
+    await prisma.favorites.delete({where: {albumsid: id}});
     console.log(`This action removes a #${id} album from favorites`);
     return STATUS.DELETED;
   }

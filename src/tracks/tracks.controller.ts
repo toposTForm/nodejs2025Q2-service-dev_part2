@@ -3,7 +3,6 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   BadRequestException,
@@ -26,7 +25,7 @@ export class TracksController {
   ) {}
 
   @Post()
-  create(@Body() createTrackDto: CreateTrackDto) {
+  async create(@Body() createTrackDto: CreateTrackDto) {
     if (
       createTrackDto.name !== undefined &&
       createTrackDto.duration !== undefined &&
@@ -39,23 +38,24 @@ export class TracksController {
       ) {
         throw new BadRequestException(`body does not contain required fields!`);
       }
-      return this.tracksService.create(createTrackDto);
+      let track = await this.tracksService.create(createTrackDto);
+      return track;
     } else {
       throw new BadRequestException(`body does not contain required fields!`);
     }
   }
 
   @Get()
-  findAll() {
-    return this.tracksService.findAll();
+  async findAll() {
+    return await this.tracksService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string) {
     if (!validate(id)) {
       throw new BadRequestException(`id ${id} is not UUID type!`);
     }
-    let data: string | unknown = this.tracksService.findOne(id);
+    let data: string | unknown = await this.tracksService.findOne(id);
     if (data == STATUS.NOTFOUND) {
       throw new NotFoundException(`track with id ${id} no found!`);
     } else {
@@ -64,11 +64,11 @@ export class TracksController {
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() UpdateTrackDto: UpdateTrackDto) {
+  async update(@Param('id') id: string, @Body() UpdateTrackDto: UpdateTrackDto) {
     if (!validate(id)) {
       throw new BadRequestException(`id ${id} is not UUID type!`);
     }
-    let serviceAnswer: STATUS | unknown = this.tracksService.update(
+    let serviceAnswer: STATUS | unknown = await this.tracksService.update(
       id,
       UpdateTrackDto,
     );
@@ -85,14 +85,14 @@ export class TracksController {
 
   @Delete(':id')
   @HttpCode(204)
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string) {
     if (!validate(id)) {
       throw new BadRequestException(`id ${id} is not UUID type!`);
     }
-    let serviceAnswer: STATUS | unknown = this.tracksService.remove(id);
+    let serviceAnswer: STATUS | unknown = await this.tracksService.remove(id);
     if (serviceAnswer == STATUS.NOTFOUND) {
       throw new NotFoundException(`track with id ${id} no found!`);
     }
-    serviceAnswer = this.favoritesService.removeFavTrack(id);
+    serviceAnswer = await this.favoritesService.removeFavTrack(id);
   }
 }

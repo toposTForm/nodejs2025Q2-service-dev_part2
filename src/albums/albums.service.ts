@@ -5,6 +5,7 @@ import { randomUUID } from 'crypto';
 import { Album } from './entities/album.entity';
 import { validate } from 'uuid';
 import { Track } from 'src/tracks/entities/track.entity';
+import { prisma } from 'prisma/seed';
 
 export enum STATUS {
   BADREQUEST = 400,
@@ -15,21 +16,29 @@ export enum STATUS {
 
 @Injectable()
 export class AlbumsService {
-  create(CreateAlbumDto: CreateAlbumDto) {
+  async create(CreateAlbumDto: CreateAlbumDto) {
     let id = randomUUID();
     CreateAlbumDto.id = id;
-    const album = new Album(CreateAlbumDto);
+    await prisma.album.create({
+      data: {
+        id: id,
+        name: CreateAlbumDto.name,
+        year: CreateAlbumDto.year,
+        artistId: CreateAlbumDto.artistId
+      }
+    })
     console.log(`new album added!`);
+    const album = await prisma.album.findUnique({where: {id: id}});
     return album;
   }
 
-  findAll() {
+  async findAll() {
     console.log(`This action returns all albums`);
-    return Album.usersDb;
+    return await prisma.album.findMany();
   }
 
-  findOne(id: string) {
-    let album = Album.usersDb.find((user) => user.id == id);
+  async findOne(id: string) {
+    let album = await prisma.album.findUnique({where: {id: id}});
     if (album == undefined) {
       return STATUS.NOTFOUND;
     }
@@ -37,7 +46,7 @@ export class AlbumsService {
     return album;
   }
 
-  update(id: string, UpdateAlbumDto: UpdateAlbumDto) {
+  async update(id: string, UpdateAlbumDto: UpdateAlbumDto) {
     if (UpdateAlbumDto.artistId !== null) {
       if (!validate(UpdateAlbumDto.artistId)) return STATUS.BADREQUEST;
     }
@@ -46,27 +55,41 @@ export class AlbumsService {
     let year = UpdateAlbumDto.year;
     if (name == undefined || year == undefined || typeof name == 'number')
       return STATUS.BADREQUEST;
-    let album = Album.usersDb.find((user) => user.id == id);
+    let album = await prisma.album.findUnique({where: {id: id}});
     if (album == undefined) {
       return STATUS.NOTFOUND;
     }
-    album.name = name;
-    album.year = year;
-    album.artistId = artistId;
-    return `Artist #${id} updated`;
+    await prisma.album.update({
+      where: {
+        id: id
+      },
+      data: {
+        name: name,
+        year: year,
+        artistId: artistId
+      }
+    });
+    return `Album #${id} updated`;
   }
 
-  remove(id: string) {
-    let albumIndex = Album.usersDb.findIndex((user) => user.id == id);
-    if (albumIndex == -1) {
+  async remove(id: string) {
+    let album =  await prisma.album.findUnique({where: {id: id}});
+    if (album == undefined) {
       return STATUS.NOTFOUND;
     }
-    let albumId = Album.usersDb[albumIndex].id;
-    Album.usersDb.splice(albumIndex, 1);
-    Track.usersDb.forEach((track) => {
-      if (track.albumId == albumId) track.albumId = null;
-    });
-    console.log(`This action removes a #${id} artist`);
+    let referTracks = await prisma.track.findMany({where: {albumId: id}});
+    if (referTracks){
+      await prisma.track.updateMany({
+        where: {
+          albumId: id
+        },
+        data: {
+          albumId: null
+        }
+      });
+    };
+    await prisma.album.delete({where: {id: id}});
+    console.log(`This action removes a #${id} album`);
     return STATUS.DELETED;
   }
 }

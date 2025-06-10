@@ -18,7 +18,6 @@ import { STATUS, UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-user.dto';
 import { validate } from 'uuid';
-import { User } from './entities/user.entity';
 
 @Controller('/user')
 export class UsersController {
@@ -37,7 +36,7 @@ export class UsersController {
   }
 
   @Put(':id')
-  update(
+  async update(
     @Param('id') id: string,
     @Body() updatePasswordDto: UpdatePasswordDto,
   ) {
@@ -45,7 +44,7 @@ export class UsersController {
     if (!validate(id)) {
       throw new BadRequestException(`id ${id} is not UUID type!`);
     }
-    let serviceAnswer: STATUS | unknown = this.usersService.update(
+    let serviceAnswer: STATUS | unknown = await this.usersService.update(
       id,
       updatePasswordDto,
     );
@@ -66,12 +65,11 @@ export class UsersController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    // if (id[0] == ':') id = id.slice(1,id.length);
+  async findOne(@Param('id') id: string) {
     if (!validate(id)) {
       throw new BadRequestException(`id ${id} is not UUID type!`);
     }
-    let data: string | unknown = this.usersService.findOne(id);
+    let data: string | unknown = await this.usersService.findOne(id);
     if (data == STATUS.NOTFOUND) {
       throw new NotFoundException(`user with id ${id} no found!`);
     } else {
@@ -81,12 +79,12 @@ export class UsersController {
 
   @Delete(':id')
   @HttpCode(204)
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string) {
     if (id[0] == ':') id = id.slice(1, id.length);
     if (!validate(id)) {
       throw new BadRequestException(`id ${id} is not UUID type!`);
     }
-    let serviceAnswer: STATUS | unknown = this.usersService.remove(id);
+    let serviceAnswer: STATUS | unknown = await this.usersService.remove(id);
     if (serviceAnswer == STATUS.NOTFOUND) {
       throw new NotFoundException(`user with id ${id} no found!`);
     }
